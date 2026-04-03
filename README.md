@@ -9,8 +9,7 @@ A local Sonos controller built with Bun, `@svrooij/sonos`, MQTT, and a separate 
 - `packages/tui` — debug OpenTUI app
 - `packages/ha-addon` — source package for the Home Assistant add-on
 - `packages/ha-integration` — source package for the Home Assistant custom integration
-- `sonos_player` — publishable HAOS add-on path at repo root
-- `custom_components/sonos_player` — publishable HACS/manual integration path at repo root
+- `scripts/export-ha.ts` — exports a publishable Home Assistant repo
 
 ## Development environment
 
@@ -86,32 +85,32 @@ MQTT_PASSWORD=your-password
 
 ## Home Assistant setup
 
-This repository now supports both Home Assistant distribution paths from the repo root:
+This repo is now the **source repo**.
 
-- **HA add-on repository** via root `repository.yaml`
-- **HACS custom integration** via root `hacs.json`
+The publishable Home Assistant repo is:
 
-Publishable root paths:
+- `https://github.com/eranknafo2001/sonos-player-ha`
 
-- `sonos_player/` — HAOS add-on
-- `custom_components/sonos_player/` — HACS/manual custom integration
+It is generated from this repo by CI using:
+
+- `bun run export:ha`
 
 Quick add links:
 
-- HACS custom repo: `https://my.home-assistant.io/redirect/hacs_repository/?owner=eranknafo2001&repository=sonos-player&category=integration`
-- Add-on repo: `https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Feranknafo2001%2Fsonos-player`
+- HACS custom repo: `https://my.home-assistant.io/redirect/hacs_repository/?owner=eranknafo2001&repository=sonos-player-ha&category=integration`
+- Add-on repo: `https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Feranknafo2001%2Fsonos-player-ha`
 
 You need both if you want the full HA experience.
 
 ### 1. Install the add-on on HAOS
 
-Add this repository URL to the Home Assistant add-on store repositories list, then install the add-on:
+Add the published repository URL to the Home Assistant add-on store repositories list, then install the add-on:
 
 - `sonos_player`
 
 Repository quick link:
 
-- `https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Feranknafo2001%2Fsonos-player`
+- `https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Feranknafo2001%2Fsonos-player-ha`
 
 Configure it with values like:
 
@@ -146,20 +145,16 @@ Expected response:
 ### 2. Install the custom integration
 
 #### HACS
-Add this repository as a custom repository in HACS and install:
+Add the published repository as a custom repository in HACS and install:
 
 - `Sonos Player`
 
 Repository quick link:
 
-- `https://my.home-assistant.io/redirect/hacs_repository/?owner=eranknafo2001&repository=sonos-player&category=integration`
-
-This uses the root integration path:
-
-- `custom_components/sonos_player`
+- `https://my.home-assistant.io/redirect/hacs_repository/?owner=eranknafo2001&repository=sonos-player-ha&category=integration`
 
 #### Manual install
-Copy:
+Copy from the published repo:
 
 - `custom_components/sonos_player`
 
@@ -216,5 +211,4 @@ Current media browsing support:
 - OpenTUI is isolated to the TUI package
 - Home Assistant discovery is published through MQTT device discovery at `homeassistant/device/sonos-player/config`, and the app also clears common legacy per-entity discovery topics to avoid duplicates after upgrades
 - the custom Home Assistant integration uses the headless HTTP API to provide a real `media_player` with Sonos Favorites browsing
-- this repo now includes both the root-level HA add-on repository metadata and the root-level HACS metadata so one GitHub repository can be used for both distribution paths
-- the root `sonos_player/` add-on folder is self-contained for Home Assistant add-on builds and includes its own copied workspace files needed by the Docker build
+- this repo keeps the Home Assistant source packages under `packages/`, and CI publishes a generated distribution repo to `eranknafo2001/sonos-player-ha`
