@@ -1,8 +1,8 @@
 name: Sonos Player
 slug: sonos_player
-version: "0.1.0"
+version: "0.1.2"
 description: Headless Sonos group manager service for Home Assistant
-url: https://github.com/eranknafo2001/sonos-player
+url: https://github.com/eranknafo2001/sonos-player-ha
 startup: services
 boot: auto
 init: false
