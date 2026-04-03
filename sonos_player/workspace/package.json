@@ -3,18 +3,7 @@
   "type": "module",
   "private": true,
   "workspaces": [
-    "packages/*"
-  ],
-  "scripts": {
-    "dev": "cd packages/headless && bun start",
-    "start": "cd packages/headless && bun start",
-    "tui": "cd packages/tui && bun start",
-    "cli": "cd packages/core && bun cli",
-    "typecheck": "cd packages/core && bun run typecheck && cd ../headless && bun run typecheck && cd ../tui && bun run typecheck",
-    "export:ha": "bun scripts/export-ha.ts"
-  },
-  "devDependencies": {
-    "@types/bun": "latest",
-    "typescript": "^5.9.3"
-  }
+    "packages/core",
+    "packages/headless"
+  ]
 }
