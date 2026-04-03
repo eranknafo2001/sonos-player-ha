@@ -7,7 +7,7 @@ COPY workspace/package.json workspace/bun.lock workspace/tsconfig.json ./
 COPY workspace/packages ./packages
 COPY rootfs/run.sh /run.sh
 
-RUN bun install --frozen-lockfile --production
+RUN bun install --production
 RUN chmod +x /run.sh
 
 CMD ["/run.sh"]
