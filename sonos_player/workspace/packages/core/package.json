@@ -1,0 +1,26 @@
+{
+  "name": "@sonos-player/core",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./app/service": "./src/app/service.ts",
+    "./app/types": "./src/app/types.ts",
+    "./mqtt/service": "./src/mqtt/service.ts",
+    "./sonos": "./src/sonos/index.ts",
+    "./sonos/client": "./src/sonos/client.ts",
+    "./sonos/index": "./src/sonos/index.ts",
+    "./sonos/service": "./src/sonos/service.ts",
+    "./sonos/topology": "./src/sonos/topology.ts",
+    "./sonos/types": "./src/sonos/types.ts",
+    "./cli": "./src/cli.ts"
+  },
+  "scripts": {
+    "cli": "bun --env-file=../../.env src/cli.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit --pretty false --incremental false"
+  },
+  "dependencies": {
+    "@svrooij/sonos": "^2.5.0",
+    "mqtt": "^5.14.1"
+  }
+}

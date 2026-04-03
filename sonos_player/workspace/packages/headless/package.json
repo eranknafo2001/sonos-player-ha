@@ -1,0 +1,13 @@
+{
+  "name": "@sonos-player/headless",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --env-file=../../.env src/index.ts",
+    "start": "bun --env-file=../../.env src/index.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit --pretty false --incremental false"
+  },
+  "dependencies": {
+    "@sonos-player/core": "workspace:*"
+  }
+}
