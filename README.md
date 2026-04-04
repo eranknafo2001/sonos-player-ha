@@ -5,11 +5,10 @@ A local Sonos controller built with Bun, `@svrooij/sonos`, MQTT, and a separate 
 ## Workspace layout
 
 - `packages/core` — Sonos control, MQTT integration, shared app logic, CLI
-- `packages/headless` — headless service entrypoint + HTTP API
+- `packages/headless` — headless service entrypoint
 - `packages/tui` — debug OpenTUI app
-- `packages/ha-addon` — source package for the Home Assistant add-on
-- `packages/ha-integration` — source package for the Home Assistant custom integration
-- `scripts/export-ha.ts` — exports a publishable Home Assistant repo
+- `packages/ha-addon` — Home Assistant add-on source (Dockerfile, config.yaml, run.sh)
+- `scripts/export-ha.ts` — exports publishable HA repo to `dist/ha-publish`
 
 ## Development environment
 
@@ -95,12 +94,9 @@ It is generated from this repo by CI using:
 
 - `bun run export:ha`
 
-Quick add links:
+Quick add link:
 
-- HACS custom repo: `https://my.home-assistant.io/redirect/hacs_repository/?owner=eranknafo2001&repository=sonos-player-ha&category=integration`
 - Add-on repo: `https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Feranknafo2001%2Fsonos-player-ha`
-
-You need both if you want the full HA experience.
 
 ### 1. Install the add-on on HAOS
 
@@ -128,56 +124,20 @@ api_token: ""
 
 Then start the add-on.
 
-The backend exposes an HTTP API on port `8099`.
+### 2. Use the native Sonos integration for playback
 
-Health check example:
+The official Home Assistant Sonos integration already provides full `media_player` entities per speaker with:
 
-```txt
-http://homeassistant.local:8099/health
-```
+- play/pause/next/previous
+- volume/mute
+- media browsing (Sonos Favorites, music library, Spotify, etc.)
+- play media
+- grouping via `media_player.join` / `media_player.unjoin`
 
-Expected response:
+Use the native Sonos `media_player` entities for playback and media selection.
+Use this add-on's MQTT switches to control which speakers are in the managed group.
 
-```json
-{"ok":true}
-```
-
-### 2. Install the custom integration
-
-#### HACS
-Add the published repository as a custom repository in HACS and install:
-
-- `Sonos Player`
-
-Repository quick link:
-
-- `https://my.home-assistant.io/redirect/hacs_repository/?owner=eranknafo2001&repository=sonos-player-ha&category=integration`
-
-#### Manual install
-Copy from the published repo:
-
-- `custom_components/sonos_player`
-
-into your Home Assistant config directory:
-
-- `config/custom_components/sonos_player`
-
-Then restart Home Assistant.
-
-### 3. Add the integration in Home Assistant
-
-In Home Assistant:
-
-- go to **Settings → Devices & Services**
-- click **Add Integration**
-- search for **Sonos Player**
-
-Enter:
-
-- **Base URL** — for example `http://homeassistant.local:8099`
-- **API token** — if configured in the add-on
-
-### 4. What you will get
+### 3. What you will get
 
 #### MQTT-discovered entities
 Via MQTT discovery, you should get:
@@ -186,29 +146,11 @@ Via MQTT discovery, you should get:
 - per-speaker workaround switches
 - coordinator sensor
 
-#### Custom integration entity
-Via the custom integration, you should get:
-
-- one real `media_player` named **Managed group**
-
-Current custom integration features:
-
-- play
-- pause
-- next
-- previous
-- browse media
-- play media
-
-Current media browsing support:
-
-- Sonos Favorites
-
 ## Notes
 
 - speaker discovery/control only works when this machine can reach your Sonos network
 - the headless service is the real app; the TUI is for inspection/debugging
 - OpenTUI is isolated to the TUI package
 - Home Assistant discovery is published through MQTT device discovery at `homeassistant/device/sonos-player/config`, and the app also clears common legacy per-entity discovery topics to avoid duplicates after upgrades
-- the custom Home Assistant integration uses the headless HTTP API to provide a real `media_player` with Sonos Favorites browsing
-- this repo keeps the Home Assistant source packages under `packages/`, and CI publishes a generated distribution repo to `eranknafo2001/sonos-player-ha`
+- the native HA Sonos integration provides full media_player entities with browsing, playback, and grouping support; no custom integration is needed
+- this repo keeps the Home Assistant add-on source under `packages/ha-addon`, and CI publishes a generated distribution repo to `eranknafo2001/sonos-player-ha`

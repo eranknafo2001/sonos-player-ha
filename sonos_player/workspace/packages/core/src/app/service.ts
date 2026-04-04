@@ -2,7 +2,7 @@ import { mqttState } from "../mqtt/service";
 import { sonos } from "../sonos/service";
 import { findManagedGroup, getGroupCoordinatorId, getGroupSpeakerIds } from "../sonos/topology";
 import type { GroupChange } from "../sonos/types";
-import type { AppSnapshot, MediaBrowseItem } from "./types";
+import type { AppSnapshot } from "./types";
 
 function log(action: string, details?: Record<string, unknown>) {
   const timestamp = new Date().toISOString();
@@ -143,49 +143,6 @@ export class AppService {
 
   async adjustVolume(delta: number, targetCoordinatorId?: string | null) {
     return sonos.adjustVolume(delta, targetCoordinatorId);
-  }
-
-  async browseMedia(mediaContentType?: string, mediaContentId?: string): Promise<MediaBrowseItem[]> {
-    if (!mediaContentType || mediaContentType === "root") {
-      return [
-        {
-          id: "favorites",
-          title: "Sonos Favorites",
-          mediaContentType: "favorites",
-          mediaContentId: "favorites",
-          canPlay: false,
-          canExpand: true,
-        },
-      ];
-    }
-
-    if (mediaContentType === "favorites") {
-      const favorites = await sonos.getFavorites();
-      const items = Array.isArray(favorites.Result) ? favorites.Result : [];
-      return items.map((item) => ({
-        id: item.ItemId ?? item.TrackUri ?? item.Title ?? "favorite",
-        title: item.Title ?? item.TrackUri ?? "Favorite",
-        mediaContentType: "favorite_item",
-        mediaContentId: item.TrackUri ?? "",
-        canPlay: Boolean(item.TrackUri),
-        canExpand: false,
-        imageUrl: item.AlbumArtUri,
-        uri: item.TrackUri,
-        artist: item.Artist,
-        album: item.Album,
-      }));
-    }
-
-    return [];
-  }
-
-  async playMedia(mediaContentType: string, mediaContentId: string) {
-    if (mediaContentType === "favorite_item") {
-      if (!mediaContentId) throw new Error("Missing media content id.");
-      return sonos.playUri(mediaContentId);
-    }
-
-    throw new Error(`Unsupported media content type: ${mediaContentType}`);
   }
 
   async startBackgroundService(refreshIntervalMs = Number(process.env.SONOS_REFRESH_INTERVAL_MS ?? 5_000)) {

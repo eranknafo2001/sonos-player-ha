@@ -1,5 +1,5 @@
 import type { SonosManager } from "@svrooij/sonos";
-import { createManager, fetchGroups, fetchSpeakerStates, getSpeakerFavorites, loadSpeakersFromManager, makeStandalone, setSpeakerTransportUri } from "./client";
+import { createManager, fetchGroups, fetchSpeakerStates, loadSpeakersFromManager, makeStandalone } from "./client";
 import {
   adjustSharedVolume,
   getCoordinatorForGroup,
@@ -164,18 +164,6 @@ export class SonosService {
 
   async adjustVolume(delta: number, targetCoordinatorId?: string | null) {
     return this.runOnCoordinator((speaker, state) => adjustSharedVolume(speaker, delta, state), targetCoordinatorId);
-  }
-
-  async getFavorites(targetCoordinatorId?: string | null) {
-    const speaker = await this.resolveCoordinatorSpeaker(targetCoordinatorId);
-    return getSpeakerFavorites(speaker);
-  }
-
-  async playUri(trackUri: string, targetCoordinatorId?: string | null) {
-    const speaker = await this.resolveCoordinatorSpeaker(targetCoordinatorId);
-    await setSpeakerTransportUri(speaker, trackUri);
-    await playShared(speaker);
-    return this.getSnapshot();
   }
 
   close() {

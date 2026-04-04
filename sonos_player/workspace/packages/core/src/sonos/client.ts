@@ -117,14 +117,6 @@ export async function makeStandalone(speaker: SonosSpeaker) {
   await speaker.device.AVTransportService.BecomeCoordinatorOfStandaloneGroup({ InstanceID: INSTANCE_ID });
 }
 
-export async function getSpeakerFavorites(speaker: SonosSpeaker) {
-  return await speaker.device.GetFavorites();
-}
-
-export async function setSpeakerTransportUri(speaker: SonosSpeaker, trackUri: string) {
-  await speaker.device.SetAVTransportURI(trackUri);
-}
-
 export async function playSpeaker(speaker: SonosSpeaker) {
   await speaker.device.Play();
 }
