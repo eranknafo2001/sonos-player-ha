@@ -1,16 +1,11 @@
 import type { SonosManager } from "@svrooij/sonos";
 import { createManager, fetchGroups, fetchSpeakerStates, loadSpeakersFromManager, makeStandalone } from "./client";
 import {
-  adjustSharedVolume,
   getCoordinatorForGroup,
   nextShared,
-  pauseShared,
-  playShared,
-  previousShared,
-  toggleSharedMute,
 } from "./player";
 import { buildSnapshot, findManagedGroup, getGroupSpeakerIds } from "./topology";
-import type { SonosSnapshot, SonosSpeaker, SonosSpeakerState } from "./types";
+import type { SonosSnapshot, SonosSpeaker } from "./types";
 
 function log(action: string, details?: Record<string, unknown>) {
   const timestamp = new Date().toISOString();
@@ -142,28 +137,9 @@ export class SonosService {
     return changed;
   }
 
-  async play(targetCoordinatorId?: string | null) {
-    return this.runOnCoordinator(playShared, targetCoordinatorId);
-  }
-
-  async pause(targetCoordinatorId?: string | null) {
-    return this.runOnCoordinator(pauseShared, targetCoordinatorId);
-  }
-
   async next(targetCoordinatorId?: string | null) {
-    return this.runOnCoordinator(nextShared, targetCoordinatorId);
-  }
-
-  async previous(targetCoordinatorId?: string | null) {
-    return this.runOnCoordinator(previousShared, targetCoordinatorId);
-  }
-
-  async toggleMute(targetCoordinatorId?: string | null) {
-    return this.runOnCoordinator(toggleSharedMute, targetCoordinatorId);
-  }
-
-  async adjustVolume(delta: number, targetCoordinatorId?: string | null) {
-    return this.runOnCoordinator((speaker, state) => adjustSharedVolume(speaker, delta, state), targetCoordinatorId);
+    const speaker = await this.resolveCoordinatorSpeaker(targetCoordinatorId);
+    await nextShared(speaker);
   }
 
   close() {
@@ -182,16 +158,6 @@ export class SonosService {
     this.manager = null;
     this.speakers = [];
     await this.ensureStarted();
-  }
-
-  private async runOnCoordinator(
-    action: (speaker: SonosSpeaker, state?: SonosSpeakerState) => Promise<void>,
-    targetCoordinatorId?: string | null,
-  ) {
-    const snapshot = await this.getSnapshot();
-    const coordinator = await this.resolveCoordinatorSpeaker(targetCoordinatorId, snapshot);
-    await action(coordinator, snapshot.speakerStates.get(coordinator.id));
-    return this.getSnapshot();
   }
 
   private async resolveCoordinatorSpeaker(targetCoordinatorId?: string | null, snapshot?: SonosSnapshot) {

@@ -121,30 +121,6 @@ export class AppService {
     return this.getSnapshot();
   }
 
-  async play(targetCoordinatorId?: string | null) {
-    return sonos.play(targetCoordinatorId);
-  }
-
-  async pause(targetCoordinatorId?: string | null) {
-    return sonos.pause(targetCoordinatorId);
-  }
-
-  async next(targetCoordinatorId?: string | null) {
-    return sonos.next(targetCoordinatorId);
-  }
-
-  async previous(targetCoordinatorId?: string | null) {
-    return sonos.previous(targetCoordinatorId);
-  }
-
-  async toggleMute(targetCoordinatorId?: string | null) {
-    return sonos.toggleMute(targetCoordinatorId);
-  }
-
-  async adjustVolume(delta: number, targetCoordinatorId?: string | null) {
-    return sonos.adjustVolume(delta, targetCoordinatorId);
-  }
-
   async startBackgroundService(refreshIntervalMs = Number(process.env.SONOS_REFRESH_INTERVAL_MS ?? 5_000)) {
     await this.ensureStarted();
     await this.getSnapshot(true);

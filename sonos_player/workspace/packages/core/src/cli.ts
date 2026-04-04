@@ -1,14 +1,7 @@
 import {
   fetchGroups as getGroups,
-  fetchSpeakerState as getSpeakerState,
   joinToCoordinator as joinSpeakerToCoordinator,
   makeStandalone as makeSpeakerStandalone,
-  nextSpeaker as nextTrack,
-  pauseSpeaker as pause,
-  playSpeaker as play,
-  previousSpeaker as previousTrack,
-  setSpeakerMute as setMute,
-  setSpeakerVolume as setVolume,
 } from "./sonos/client";
 import { sonos } from "./sonos/service";
 import { findSpeaker } from "./sonos/topology";
@@ -20,14 +13,6 @@ function usage() {
 Usage:
   bun run cli -- scan
   bun run cli -- groups
-  bun run cli -- state <speaker>
-  bun run cli -- play <speaker>
-  bun run cli -- pause <speaker>
-  bun run cli -- next <speaker>
-  bun run cli -- prev <speaker>
-  bun run cli -- volume <speaker> <0-100>
-  bun run cli -- mute <speaker>
-  bun run cli -- unmute <speaker>
   bun run cli -- join <speaker> <coordinator>
   bun run cli -- leave <speaker>
 
@@ -80,58 +65,6 @@ async function main() {
             console.log(`  - ${member.name} (${member.host})${member.uuid === group.coordinator.uuid ? " [coordinator]" : ""}`);
           }
         }
-        return;
-      }
-      case "state": {
-        const speaker = requireSpeaker(speakers, args[0]);
-        const state = await getSpeakerState(speaker);
-        console.log(JSON.stringify({ speaker: speaker.roomName, ...state }, null, 2));
-        return;
-      }
-      case "play": {
-        const speaker = requireSpeaker(speakers, args[0]);
-        await play(speaker);
-        console.log(`Play sent to ${speaker.roomName}`);
-        return;
-      }
-      case "pause": {
-        const speaker = requireSpeaker(speakers, args[0]);
-        await pause(speaker);
-        console.log(`Pause sent to ${speaker.roomName}`);
-        return;
-      }
-      case "next": {
-        const speaker = requireSpeaker(speakers, args[0]);
-        await nextTrack(speaker);
-        console.log(`Next sent to ${speaker.roomName}`);
-        return;
-      }
-      case "prev": {
-        const speaker = requireSpeaker(speakers, args[0]);
-        await previousTrack(speaker);
-        console.log(`Previous sent to ${speaker.roomName}`);
-        return;
-      }
-      case "volume": {
-        const speaker = requireSpeaker(speakers, args[0]);
-        const volume = Number(args[1]);
-        if (Number.isNaN(volume)) {
-          throw new Error("volume requires a number");
-        }
-        await setVolume(speaker, volume);
-        console.log(`Volume set on ${speaker.roomName} to ${volume}`);
-        return;
-      }
-      case "mute": {
-        const speaker = requireSpeaker(speakers, args[0]);
-        await setMute(speaker, true);
-        console.log(`Muted ${speaker.roomName}`);
-        return;
-      }
-      case "unmute": {
-        const speaker = requireSpeaker(speakers, args[0]);
-        await setMute(speaker, false);
-        console.log(`Unmuted ${speaker.roomName}`);
         return;
       }
       case "join": {
