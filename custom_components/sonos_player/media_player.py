@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from datetime import timedelta
 from typing import Any
 
@@ -18,6 +19,8 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Coor
 
 from .api import SonosPlayerApiClient
 from .const import DEFAULT_SCAN_INTERVAL_SECONDS, DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 SUPPORTED_FEATURES = (
     MediaPlayerEntityFeature.PLAY
@@ -39,7 +42,7 @@ async def async_setup_entry(
         dict[str, Any]
     ](
         hass,
-        logger=None,
+        logger=_LOGGER,
         name="sonos_player",
         update_method=client.async_get_state,
         update_interval=timedelta(seconds=DEFAULT_SCAN_INTERVAL_SECONDS),
