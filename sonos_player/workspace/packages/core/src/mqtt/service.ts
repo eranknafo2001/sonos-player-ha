@@ -50,6 +50,7 @@ export class MqttStateService {
   private discoveryPublished = false;
   private discoveredSpeakerIds = new Set<string>();
   private legacyDiscoveryPurged = false;
+  private suppressDesiredEcho = false;
 
   async ensureConnected(): Promise<void> {
     if (this.client?.connected) return;
@@ -66,8 +67,18 @@ export class MqttStateService {
 
       if (topic.startsWith(`${DESIRED_PREFIX}/`)) {
         const speakerId = topic.slice(`${DESIRED_PREFIX}/`.length);
+        const newValue = value === "true" || value === "1";
+        const oldValue = this.desiredSpeakerIds.has(speakerId);
+
+        if (newValue === oldValue) return;
+
+        if (this.suppressDesiredEcho) {
+          log("message:desired:suppressed", { topic, speakerId, value });
+          return;
+        }
+
         log("message:desired", { topic, speakerId, value });
-        if (value === "true" || value === "1") {
+        if (newValue) {
           this.desiredSpeakerIds.add(speakerId);
         } else {
           this.desiredSpeakerIds.delete(speakerId);
@@ -78,8 +89,13 @@ export class MqttStateService {
 
       if (topic.startsWith(`${WORKAROUND_PREFIX}/`)) {
         const speakerId = topic.slice(`${WORKAROUND_PREFIX}/`.length);
+        const newValue = value === "true" || value === "1";
+        const oldValue = this.advanceOnCoordinatorLeaveSpeakerIds.has(speakerId);
+
+        if (newValue === oldValue) return;
+
         log("message:workaround", { topic, speakerId, value });
-        if (value === "true" || value === "1") {
+        if (newValue) {
           this.advanceOnCoordinatorLeaveSpeakerIds.add(speakerId);
         } else {
           this.advanceOnCoordinatorLeaveSpeakerIds.delete(speakerId);
@@ -130,16 +146,20 @@ export class MqttStateService {
   ): Promise<void> {
     await this.ensureConnected();
     log("desired:set", { speakerId, selected });
-    await this.publish(
-      desiredTopic(speakerId),
-      selected ? "true" : "false",
-      true,
-    );
+
     if (selected) {
       this.desiredSpeakerIds.add(speakerId);
     } else {
       this.desiredSpeakerIds.delete(speakerId);
     }
+
+    this.suppressDesiredEcho = true;
+    await this.publish(
+      desiredTopic(speakerId),
+      selected ? "true" : "false",
+      true,
+    );
+    this.suppressDesiredEcho = false;
   }
 
   async setAdvanceOnCoordinatorLeave(speakerId: string, enabled: boolean): Promise<void> {
@@ -253,9 +273,9 @@ export class MqttStateService {
         state_topic: speakerStateTopic(speaker.id),
         payload_on: "true",
         payload_off: "false",
-        state_on: true,
-        state_off: false,
-        value_template: "{{ value_json.selected }}",
+        state_on: "true",
+        state_off: "false",
+        value_template: "{{ 'true' if value_json.selected else 'false' }}",
       };
 
       cmps[`advance_on_leave_${speaker.id}`] = {
@@ -267,9 +287,9 @@ export class MqttStateService {
         state_topic: speakerStateTopic(speaker.id),
         payload_on: "true",
         payload_off: "false",
-        state_on: true,
-        state_off: false,
-        value_template: "{{ value_json.advanceOnCoordinatorLeave }}",
+        state_on: "true",
+        state_off: "false",
+        value_template: "{{ 'true' if value_json.advanceOnCoordinatorLeave else 'false' }}",
         entity_category: "config",
       };
     }
