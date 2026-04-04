@@ -3,10 +3,10 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import Any
 
-from homeassistant.components.media_player import MediaPlayerEntity
-from homeassistant.components.media_player.browse_media import BrowseMedia
-from homeassistant.components.media_player.const import (
+from homeassistant.components.media_player import (
+    BrowseMedia,
     MediaPlayerDeviceClass,
+    MediaPlayerEntity,
     MediaPlayerEntityFeature,
     MediaPlayerState,
     MediaType,
