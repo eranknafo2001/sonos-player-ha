@@ -18,6 +18,8 @@ export class AppService {
   private reconcileInFlight: Promise<void> | null = null;
   private backgroundRefreshTimer: ReturnType<typeof setInterval> | null = null;
   private lastDesiredSpeakerIds = new Set<string>();
+  private lastReconcileTime = 0;
+  private static readonly RECONCILE_COOLDOWN_MS = 10_000;
 
   async getSnapshot(reconcile = true): Promise<AppSnapshot> {
     const sonosSnapshot = await sonos.getSnapshot();
@@ -127,6 +129,11 @@ export class AppService {
 
     if (this.backgroundRefreshTimer) clearInterval(this.backgroundRefreshTimer);
     this.backgroundRefreshTimer = setInterval(() => {
+      const msSinceReconcile = Date.now() - this.lastReconcileTime;
+      if (msSinceReconcile < AppService.RECONCILE_COOLDOWN_MS) {
+        log("background:tick:skipped", { msSinceReconcile, cooldown: AppService.RECONCILE_COOLDOWN_MS });
+        return;
+      }
       void this.getSnapshot(true).catch((error) => {
         log("background:tick:error", { error: error instanceof Error ? error.message : String(error) });
       });
@@ -157,9 +164,17 @@ export class AppService {
   private async reconcileFromMqtt() {
     if (this.reconcileInFlight) return this.reconcileInFlight;
 
+    this.lastReconcileTime = Date.now();
+
     this.reconcileInFlight = (async () => {
       try {
+        log("reconcileFromMqtt:start");
         await this.getSnapshot(true);
+
+        // Wait for Sonos to settle, then publish final state
+        await new Promise((resolve) => setTimeout(resolve, 2_000));
+        await this.getSnapshot(false);
+        log("reconcileFromMqtt:settled");
       } finally {
         this.reconcileInFlight = null;
       }
