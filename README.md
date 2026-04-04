@@ -146,6 +146,96 @@ Via MQTT discovery, you should get:
 - per-speaker workaround switches
 - coordinator sensor
 
+### 4. Create a template media player that follows the coordinator
+
+The add-on publishes a `sensor.sonos_player_group_coordinator` entity whose state is the room name of the current managed-group coordinator (e.g. `LivingRoom`).
+
+You can create a **template variable** in Home Assistant that resolves to the correct Sonos `media_player` entity, so your dashboard always controls the active coordinator.
+
+#### Helper template sensor
+
+Add this to your `configuration.yaml`:
+
+```yaml
+template:
+  - sensor:
+      - name: "Sonos Player Active Entity"
+        unique_id: sonos_player_active_entity
+        state: >
+          {% set room = states('sensor.sonos_player_group_coordinator') | lower | replace(' ', '_') %}
+          {% if room and room != 'none' and room != 'unknown' %}
+            media_player.{{ room }}
+          {% else %}
+            none
+          {% endif %}
+```
+
+This produces an entity like `sensor.sonos_player_active_entity` whose state is:
+- `media_player.livingroom` when LivingRoom is the coordinator
+- `media_player.treatment` when Treatment is the coordinator
+- `none` when no group is active
+
+Adjust the template if your Sonos entity IDs use a different naming pattern (e.g. `media_player.sonos_livingroom`). You can check the exact entity IDs in **Settings → Devices & Services → Sonos**.
+
+#### Dashboard: show the active coordinator player
+
+Use a **conditional card** or **custom:mini-media-player** with a template entity.
+
+Simplest approach with a standard media control card:
+
+```yaml
+type: media-control
+entity: media_player.livingroom
+```
+
+To make it dynamic, use a **Markdown card** or **custom:mini-media-player** with a template, or use the **custom:state-switch** card from HACS:
+
+```yaml
+type: custom:state-switch
+entity: sensor.sonos_player_active_entity
+states:
+  media_player.livingroom:
+    type: media-control
+    entity: media_player.livingroom
+  media_player.treatment:
+    type: media-control
+    entity: media_player.treatment
+  media_player.shower:
+    type: media-control
+    entity: media_player.shower
+default:
+  type: markdown
+  content: "No active Sonos group"
+```
+
+Alternatively, if you have [custom:mini-media-player](https://github.com/kalkih/mini-media-player) installed:
+
+```yaml
+type: custom:mini-media-player
+entity: media_player.livingroom
+group: true
+hide:
+  power: true
+```
+
+Replace the entity with whichever speaker is most commonly the coordinator, or duplicate cards and use conditional visibility based on `sensor.sonos_player_active_entity`.
+
+#### Dashboard: conditional card per coordinator
+
+You can also use built-in conditional cards:
+
+```yaml
+type: conditional
+conditions:
+  - entity: sensor.sonos_player_active_entity
+    state: media_player.livingroom
+card:
+  type: media-control
+  entity: media_player.livingroom
+```
+
+Add one conditional card per possible coordinator speaker. Only the active one will be shown.
+
 ## Notes
 
 - speaker discovery/control only works when this machine can reach your Sonos network
