@@ -157,8 +157,8 @@ class SonosPlayerMediaEntity(CoordinatorEntity[DataUpdateCoordinator[dict[str, A
         return BrowseMedia(
             title=item.get("title", "Item"),
             media_class="music",
-            media_content_id=item.get("media_content_id", ""),
-            media_content_type=item.get("media_content_type", ""),
+            media_content_id=item.get("mediaContentId", item.get("media_content_id", "")),
+            media_content_type=item.get("mediaContentType", item.get("media_content_type", "")),
             can_play=item.get("canPlay", False),
             can_expand=item.get("canExpand", False),
             thumbnail=item.get("imageUrl"),
